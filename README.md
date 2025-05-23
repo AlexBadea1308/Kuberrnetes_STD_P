@@ -1,2 +1,3 @@
 # Kuberrnetes_STD_P
-Modified
+cerinta in alexandru.badea2@mta.ro.pdf
+
