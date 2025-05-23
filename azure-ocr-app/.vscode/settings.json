@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/5dda5b78-357a-47e3-9f9c-30cbf6c3f8d6/resourceGroups/TEMA_STD/providers/Microsoft.Web/sites/OCR-AI2",
+    "appService.deploySubpath": "."
+}

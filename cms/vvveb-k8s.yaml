@@ -1,0 +1,76 @@
+---
+# Deployment for Vvveb CMS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vvveb-cms
+  labels:
+    app: vvveb-cms
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: vvveb-cms
+  template:
+    metadata:
+      labels:
+        app: vvveb-cms
+    spec:
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: vvveb-cms
+          image: vvveb/vvvebcms:php8.3-fpm-alpine
+          ports:
+            - containerPort: 80
+          env:
+            - name: DB_ENGINE
+              value: "sqlite"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: vvveb-storage
+              mountPath: /var/www/html
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "mkdir -p /var/www/html/sessions && chown 1001:1001 /var/www/html/sessions && chmod 755 /var/www/html/sessions && echo 'session.save_path=/var/www/html/sessions' > /usr/local/etc/php/conf.d/custom.ini && echo 'error_reporting = E_ALL & ~E_DEPRECATED & ~E_NOTICE' >> /usr/local/etc/php/conf.d/custom.ini && echo 'session.auto_start=0' >> /usr/local/etc/php/conf.d/custom.ini && echo 'session.use_cookies=1' >> /usr/local/etc/php/conf.d/custom.ini && echo 'session.cookie_lifetime=0' >> /usr/local/etc/php/conf.d/custom.ini && chown -R www-data:www-data /var/www/html/sessions && chmod -R 770 /var/www/html/sessions"]
+      volumes:
+        - name: vvveb-storage
+          persistentVolumeClaim:
+            claimName: vvveb-pvc
+---
+# PersistentVolumeClaim pentru SQLite
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vvveb-pvc
+spec:
+  storageClassName: microk8s-hostpath
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Service to expose Vvveb CMS
+apiVersion: v1
+kind: Service
+metadata:
+  name: vvveb-service
+spec:
+  selector:
+    app: vvveb-cms
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 80
+      nodePort: 30220
+  type: NodePort

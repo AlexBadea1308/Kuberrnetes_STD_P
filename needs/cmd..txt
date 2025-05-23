@@ -1,0 +1,2 @@
+chown -R www-data:www-data /var/www/html/sessions
+chmod -R 770 /var/www/html/sessions

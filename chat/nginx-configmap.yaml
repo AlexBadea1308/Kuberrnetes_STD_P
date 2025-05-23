@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    http {
+      upstream backend {
+        server chat-backend-service:88;
+      }
+      upstream frontend {
+        server chat-frontend-service:90;
+      }
+      server {
+        listen 80;
+        location /ws {
+          proxy_pass http://backend;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+        }
+        location / {
+          proxy_pass http://frontend;
+        }
+      }
+    } 
